@@ -1,3 +1,4 @@
 backend/.env
 *.pem
 *.key
+frontend/.env

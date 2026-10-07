@@ -56,7 +56,7 @@ const WARNING_REPEAT_GAP_SECONDS = 2;
 
 const DEFAULT_WARNING_AUDIO_URL =
   import.meta.env.VITE_WARNING_AUDIO_URL ||
-  "/warning.mp3";
+  "/warning1.mp3";
 
 
 function App() {

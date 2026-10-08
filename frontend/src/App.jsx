@@ -27,28 +27,23 @@ const BACKEND_URL =
 // before the first warning.
 const DEFAULT_WARNING_SECONDS = 20;
 
-// Gap between each voice warning after the
-// previous voice message has finished.
+// Gap between each voice warning.
 //
-// 120 seconds = 2 minutes
-const WARNING_REPEAT_GAP_SECONDS = 120;
+// 4 seconds between warnings.
+const WARNING_REPEAT_GAP_SECONDS = 4;
 
 // =====================================================
 // WARNING AUDIO
 // =====================================================
 
-// IMPORTANT:
-// Put warning1.mp3 inside the public folder:
+// Put warning1.mp3 inside:
 //
 // public/
-//     warning1.mp3
+//   warning1.mp3
 //
-// Vercel will then make it available at:
+// It will be available at:
 //
-// https://your-project.vercel.app/warning1.mp3
-//
-// You can also override this using:
-// VITE_WARNING_AUDIO_URL
+// /warning1.mp3
 
 const DEFAULT_WARNING_AUDIO_URL =
   import.meta.env.VITE_WARNING_AUDIO_URL ||
@@ -69,7 +64,7 @@ function App() {
 
   const [openDuration, setOpenDuration] = useState(0);
 
-  // Voice is enabled automatically.
+  // Voice is automatically enabled.
   const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   const audioRef = useRef(null);
@@ -106,7 +101,7 @@ function App() {
         );
 
         // Use backend warning seconds if available.
-        // Otherwise keep the default 20 seconds.
+        // Otherwise keep default 20 seconds.
         setWarningSeconds(
           Number(
             config.warningSeconds ||
@@ -115,7 +110,7 @@ function App() {
         );
 
         // Use backend audio URL only if it exists.
-        // Otherwise keep /warning1.mp3.
+        // Otherwise use /warning1.mp3.
         if (config.warningAudioUrl) {
           setWarningAudioUrl(
             config.warningAudioUrl
@@ -127,7 +122,7 @@ function App() {
           error
         );
 
-        // Keep using the default configuration.
+        // Keep default settings.
         setWarningSeconds(
           DEFAULT_WARNING_SECONDS
         );
@@ -309,7 +304,7 @@ function App() {
     }
 
     // Create a new cycle ID.
-    // This allows us to cancel an old warning cycle.
+    // This allows old warning cycles to be cancelled.
     const currentCycle =
       warningCycleRef.current + 1;
 
@@ -325,8 +320,8 @@ function App() {
       repeatTimerRef.current = null;
     }
 
-    // If door is closed or audio is unavailable,
-    // stop everything.
+    // If warning is not active,
+    // stop the audio.
     if (
       !warningActive ||
       !warningAudioUrl
@@ -337,14 +332,13 @@ function App() {
       return;
     }
 
-    // Automatically enable voice when the
-    // warning condition becomes active.
+    // Automatically enable voice.
     setVoiceEnabled(true);
 
     let stopped = false;
 
     // ===================================================
-    // WAIT BEFORE PLAYING NEXT WARNING
+    // WAIT BEFORE NEXT WARNING
     // ===================================================
 
     function waitAndPlayAgain() {
@@ -376,6 +370,8 @@ function App() {
             return;
           }
 
+          // Door must still be open
+          // and warning must still be active.
           if (!warningActive) {
             return;
           }
@@ -401,8 +397,7 @@ function App() {
       }
 
       try {
-        // Make sure the latest configured
-        // audio URL is used.
+        // Use warning audio.
         audio.src = warningAudioUrl;
 
         audio.currentTime = 0;
@@ -410,16 +405,16 @@ function App() {
         await audio.play();
 
         console.log(
-          "🔊 Warning audio playing automatically"
+          "🔊 Warning audio playing"
         );
       } catch (error) {
         console.error(
-          "Automatic audio playback was blocked by the browser:",
+          "Automatic audio playback was blocked:",
           error
         );
 
         console.log(
-          "Please click 'Enable Voice' once to allow automatic warnings."
+          "Please click Enable Voice once."
         );
       }
     }
@@ -444,7 +439,7 @@ function App() {
         "🔊 Warning finished."
       );
 
-      // Wait 2 minutes before next warning.
+      // Wait 4 seconds before next warning.
       waitAndPlayAgain();
     }
 
@@ -454,7 +449,7 @@ function App() {
       handleAudioEnded
     );
 
-    // Start first warning automatically.
+    // Start first warning.
     playWarning();
 
     // ===================================================
@@ -506,8 +501,6 @@ function App() {
       audio.currentTime = 0;
 
       // Browser permission test.
-      // The user has clicked the button,
-      // so the browser allows audio playback.
       await audio.play();
 
       audio.pause();
@@ -574,7 +567,9 @@ function App() {
       {/* HEADER */}
 
       <header className="header">
+
         <div>
+
           <h1>
             Door Monitoring System
           </h1>
@@ -582,9 +577,11 @@ function App() {
           <p>
             Milesight WS301
           </p>
+
         </div>
 
         <div className="device">
+
           <span>
             Device
           </span>
@@ -592,7 +589,9 @@ function App() {
           <strong>
             {DEVICE_ID}
           </strong>
+
         </div>
+
       </header>
 
       {/* VOICE SECTION */}
@@ -622,7 +621,7 @@ function App() {
         <span>
           Repeat gap{" "}
           <strong>
-            2 minutes
+            {WARNING_REPEAT_GAP_SECONDS} seconds
           </strong>
         </span>
 
@@ -638,6 +637,7 @@ function App() {
           </div>
 
           <div>
+
             <h2>
               Door Open Too Long
             </h2>
@@ -652,6 +652,7 @@ function App() {
                 openDuration
               )}
             </strong>
+
           </div>
 
         </div>
@@ -678,6 +679,7 @@ function App() {
           </div>
 
           <div>
+
             <h2>
               {isOpen
                 ? "DOOR OPEN"
@@ -699,6 +701,7 @@ function App() {
                 closed.
               </p>
             )}
+
           </div>
 
         </section>
@@ -708,51 +711,67 @@ function App() {
         <div className="info-grid">
 
           <div className="info-card">
+
             <h3>
               Battery
             </h3>
 
             <div className="info-value">
+
               {door?.battery !== null &&
               door?.battery !== undefined
                 ? `${door.battery}%`
                 : "-"}
+
             </div>
+
           </div>
 
           <div className="info-card">
+
             <h3>
               Tamper Status
             </h3>
 
             <div className="info-value">
+
               {door?.tamper_status ||
                 "-"}
+
             </div>
+
           </div>
 
           <div className="info-card">
+
             <h3>
               Last Opened
             </h3>
 
             <div className="info-small">
+
               {formatDate(
                 door?.last_opened_at
               )}
+
             </div>
+
           </div>
 
           <div className="info-card">
+
             <h3>
               Last Closed
             </h3>
 
             <div className="info-small">
+
               {formatDate(
                 door?.last_closed_at
               )}
+
             </div>
+
           </div>
 
         </div>
@@ -766,16 +785,21 @@ function App() {
           </h2>
 
           {events.length === 0 ? (
+
             <p className="no-data">
               No door events found.
             </p>
+
           ) : (
+
             <div className="table-container">
 
               <table>
 
                 <thead>
+
                   <tr>
+
                     <th>
                       Time
                     </th>
@@ -795,24 +819,30 @@ function App() {
                     <th>
                       Tamper
                     </th>
+
                   </tr>
+
                 </thead>
 
                 <tbody>
 
                   {events.map(
                     (event) => (
+
                       <tr
                         key={event.id}
                       >
 
                         <td>
+
                           {formatDate(
                             event.event_time
                           )}
+
                         </td>
 
                         <td>
+
                           <span
                             className={
                               event.status ===
@@ -823,32 +853,40 @@ function App() {
                           >
                             {event.status}
                           </span>
+
                         </td>
 
                         <td>
+
                           {event.duration_seconds !==
                             null &&
                           event.duration_seconds !==
                             undefined
                             ? `${event.duration_seconds}s`
                             : "-"}
+
                         </td>
 
                         <td>
+
                           {event.battery !==
                             null &&
                           event.battery !==
                             undefined
                             ? `${event.battery}%`
                             : "-"}
+
                         </td>
 
                         <td>
+
                           {event.tamper_status ||
                             "-"}
+
                         </td>
 
                       </tr>
+
                     )
                   )}
 
@@ -857,6 +895,7 @@ function App() {
               </table>
 
             </div>
+
           )}
 
         </section>

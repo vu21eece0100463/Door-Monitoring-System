@@ -64,8 +64,9 @@ function App() {
 
   const [openDuration, setOpenDuration] = useState(0);
 
-  // Voice is automatically enabled.
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  // Voice is OFF by default.
+  // User must click Enable Voice.
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
 
   const audioRef = useRef(null);
 
@@ -304,7 +305,6 @@ function App() {
     }
 
     // Create a new cycle ID.
-    // This allows old warning cycles to be cancelled.
     const currentCycle =
       warningCycleRef.current + 1;
 
@@ -321,9 +321,12 @@ function App() {
     }
 
     // If warning is not active,
-    // stop the audio.
+    // voice is disabled,
+    // or audio is unavailable,
+    // stop everything.
     if (
       !warningActive ||
+      !voiceEnabled ||
       !warningAudioUrl
     ) {
       audio.pause();
@@ -331,9 +334,6 @@ function App() {
 
       return;
     }
-
-    // Automatically enable voice.
-    setVoiceEnabled(true);
 
     let stopped = false;
 
@@ -370,13 +370,12 @@ function App() {
             return;
           }
 
-          // Door must still be open
-          // and warning must still be active.
           if (!warningActive) {
             return;
           }
 
           playWarning();
+
         }, WARNING_REPEAT_GAP_SECONDS * 1000);
     }
 
@@ -397,7 +396,6 @@ function App() {
       }
 
       try {
-        // Use warning audio.
         audio.src = warningAudioUrl;
 
         audio.currentTime = 0;
@@ -407,14 +405,11 @@ function App() {
         console.log(
           "🔊 Warning audio playing"
         );
+
       } catch (error) {
         console.error(
-          "Automatic audio playback was blocked:",
+          "Audio play error:",
           error
-        );
-
-        console.log(
-          "Please click Enable Voice once."
         );
       }
     }
@@ -475,16 +470,46 @@ function App() {
       audio.pause();
       audio.currentTime = 0;
     };
+
   }, [
     warningActive,
+    voiceEnabled,
     warningAudioUrl
   ]);
 
   // =====================================================
-  // ENABLE VOICE
+  // ENABLE / DISABLE VOICE
   // =====================================================
 
   async function enableVoice() {
+    // If voice is already ON,
+    // clicking the button will turn it OFF.
+    if (voiceEnabled) {
+      setVoiceEnabled(false);
+
+      const audio = audioRef.current;
+
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+
+      if (repeatTimerRef.current) {
+        clearTimeout(
+          repeatTimerRef.current
+        );
+
+        repeatTimerRef.current = null;
+      }
+
+      console.log(
+        "🔇 Voice disabled"
+      );
+
+      return;
+    }
+
+    // Turn voice ON.
     if (!warningAudioUrl) {
       alert(
         "Warning audio URL is not configured."
@@ -501,6 +526,8 @@ function App() {
       audio.currentTime = 0;
 
       // Browser permission test.
+      // User clicked the button,
+      // so browser allows audio playback.
       await audio.play();
 
       audio.pause();
@@ -512,6 +539,7 @@ function App() {
       console.log(
         "🔊 Voice enabled"
       );
+
     } catch (error) {
       console.error(
         "Audio enable error:",
@@ -606,9 +634,11 @@ function App() {
           }
           onClick={enableVoice}
         >
+
           {voiceEnabled
             ? "🔊 Voice Enabled"
             : "🔊 Enable Voice"}
+
         </button>
 
         <span>
@@ -687,19 +717,25 @@ function App() {
             </h2>
 
             {isOpen ? (
+
               <p>
                 Open for{" "}
+
                 <strong>
                   {formatDuration(
                     openDuration
                   )}
                 </strong>
+
               </p>
+
             ) : (
+
               <p>
                 The door is currently
                 closed.
               </p>
+
             )}
 
           </div>
@@ -834,11 +870,9 @@ function App() {
                       >
 
                         <td>
-
                           {formatDate(
                             event.event_time
                           )}
-
                         </td>
 
                         <td>

@@ -30,7 +30,7 @@ const DEFAULT_WARNING_SECONDS = 20;
 // Gap between each voice warning.
 //
 // 4 seconds between warnings.
-const WARNING_REPEAT_GAP_SECONDS = 4;
+const WARNING_REPEAT_GAP_SECONDS = 3;
 
 // =====================================================
 // WARNING AUDIO

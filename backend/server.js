@@ -743,6 +743,9 @@ app.get(
 // =====================================================
 // START SERVER
 // =====================================================
+app.get("/", (_req, res) => {
+  res.send("Door Monitoring System backend is running.");
+});
 
 app.listen(
     PORT,
